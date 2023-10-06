@@ -88,6 +88,20 @@ public class PositionResource extends BaseResource {
         }
     }
 
+    @Path("current")
+    @GET
+    public Collection<Position> getList(
+            @QueryParam("deviceId") List<Long> deviceIds)
+            throws StorageException {
+        List<Position> result = new LinkedList<>();
+        for (Long deviceId : deviceIds) {
+            result.addAll(storage.getObjects(Position.class, new Request(
+                    new Columns.All(), new Condition.LatestPositions(deviceId))));
+        }
+
+        return result;
+    }
+
     @DELETE
     public Response remove(
             @QueryParam("deviceId") long deviceId,
