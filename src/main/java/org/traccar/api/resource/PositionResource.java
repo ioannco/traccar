@@ -88,7 +88,7 @@ public class PositionResource extends BaseResource {
         }
     }
 
-    @Path("current")
+    @Path("id-list")
     @GET
     public Collection<Position> getList(
             @QueryParam("deviceId") List<Long> deviceIds)
@@ -101,6 +101,28 @@ public class PositionResource extends BaseResource {
 
         return result;
     }
+
+    @Path("imei-list")
+    @GET
+    public Collection<Position> getImeiList(
+            @QueryParam("uniqueId") List<String> uniqueIds)
+            throws StorageException {
+        List<Device> devices = new LinkedList<>();
+        for (String uniqueId : uniqueIds) {
+            devices.addAll(storage.getObjects(Device.class, new Request(
+                    new Columns.All(), new Condition.Equals("uniqueId", uniqueId))));
+        }
+
+        List<Position> result = new LinkedList<>();
+        for (Device device : devices) {
+            long deviceId = device.getId();
+            result.addAll(storage.getObjects(Position.class, new Request(
+                    new Columns.All(), new Condition.LatestPositions(deviceId))));
+        }
+
+        return result;
+    }
+
 
     @DELETE
     public Response remove(
