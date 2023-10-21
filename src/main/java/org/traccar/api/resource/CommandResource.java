@@ -166,4 +166,9 @@ public class CommandResource extends ExtendedObjectResource<Command> {
         }
     }
 
+    @GET
+    @Path("executed")
+    public boolean isCommandExecuted(@QueryParam("commandId") Long commandId) throws StorageException {
+        return storage.getObjects(QueuedCommand.class, new Request(new Columns.All(), new Condition.Equals("id", commandId))).isEmpty();
+    }
 }
