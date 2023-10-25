@@ -59,6 +59,10 @@ public class TeltonikaProtocolEncoder extends BaseProtocolEncoder {
             } else {
                 return encodeContent((data + "\r\n").getBytes(StandardCharsets.US_ASCII));
             }
+        } else if (command.getType().equals(Command.TYPE_ENGINE_STOP)){
+            return encodeContent(("setdigitout 1\n\r").getBytes(StandardCharsets.US_ASCII));
+        } else if (command.getType().equals(Command.TYPE_ENGINE_RESUME)){
+            return encodeContent(("setdigitout 0\n\r").getBytes(StandardCharsets.US_ASCII));
         } else {
             return null;
         }
