@@ -36,6 +36,12 @@ public class AdmProtocolEncoder extends StringProtocolEncoder {
             case Command.TYPE_CUSTOM:
                 return formatCommand(command, "%s\r\n", Command.KEY_DATA);
 
+            case Command.TYPE_ENGINE_RESUME:
+                return formatCommand(command, "OUTPUT 0,0\r\n");
+
+            case Command.TYPE_ENGINE_STOP:
+                return formatCommand(command, "OUTPUT 1,0\r\n");
+
             default:
                 return null;
         }

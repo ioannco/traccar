@@ -68,6 +68,14 @@ public abstract class BaseProtocolEncoder extends ChannelOutboundHandlerAdapter 
         }
     }
 
+    protected long getNavtelecomSender(long deviceId) {
+        return cacheManager.getObject(Device.class, deviceId).getNavtelecomSenderId();
+    }
+
+    protected long getNavtelecomReceiver(long deviceId) {
+        return cacheManager.getObject(Device.class, deviceId).getNavtelecomReceiverId();
+    }
+
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 

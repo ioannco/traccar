@@ -15,21 +15,27 @@
  */
 package org.traccar.protocol;
 
+import org.checkerframework.checker.units.qual.N;
 import org.traccar.BaseProtocol;
 import org.traccar.PipelineBuilder;
 import org.traccar.TrackerServer;
 import org.traccar.config.Config;
 
 import jakarta.inject.Inject;
+import org.traccar.model.Command;
 
 public class NavtelecomProtocol extends BaseProtocol {
 
     @Inject
     public NavtelecomProtocol(Config config) {
+        setSupportedDataCommands(
+            Command.TYPE_ENGINE_STOP,
+            Command.TYPE_ENGINE_RESUME);
         addServer(new TrackerServer(config, getName(), false) {
             @Override
             protected void addProtocolHandlers(PipelineBuilder pipeline, Config config) {
                 pipeline.addLast(new NavtelecomFrameDecoder());
+                pipeline.addLast(new NavtelecomProtocolEncoder(NavtelecomProtocol.this));
                 pipeline.addLast(new NavtelecomProtocolDecoder(NavtelecomProtocol.this));
             }
         });

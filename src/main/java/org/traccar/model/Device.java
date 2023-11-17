@@ -248,4 +248,42 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
         this.overspeedGeofenceId = overspeedGeofenceId;
     }
 
+    private long navtelecomSenderId;
+    private long navtelecomReceiverId;
+
+    private long arnaviParcelNumber;
+
+    @QueryIgnore
+    @JsonIgnore
+    public long getNavtelecomSenderId() {
+        return navtelecomSenderId;
+    }
+
+    @QueryIgnore
+    @JsonIgnore
+    public long getNavtelecomReceiverId() {
+        return navtelecomReceiverId;
+    }
+
+    @JsonIgnore
+    @QueryIgnore
+    public long getArnaviParcelNumber() {
+        return arnaviParcelNumber;
+    }
+
+    @JsonIgnore
+    public void setNavtelecomSenderId(long sender) {
+        navtelecomSenderId = sender;
+    }
+
+    @JsonIgnore
+    public void setNavtelecomReceiverId(long receiverId) {
+        navtelecomReceiverId = receiverId;
+    }
+
+    @JsonIgnore
+    public void setArnaviParcelNumber(long parcel) {
+        arnaviParcelNumber = parcel;
+    }
+
 }

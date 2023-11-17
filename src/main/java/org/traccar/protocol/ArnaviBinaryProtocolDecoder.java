@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import org.traccar.BaseProtocolDecoder;
+import org.traccar.model.Device;
 import org.traccar.session.DeviceSession;
 import org.traccar.NetworkMessage;
 import org.traccar.Protocol;
@@ -143,6 +144,8 @@ public class ArnaviBinaryProtocolDecoder extends BaseProtocolDecoder {
         List<Position> positions = new LinkedList<>();
 
         int index = buf.readUnsignedByte();
+
+        getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setArnaviParcelNumber(index);
 
         byte recordType = buf.readByte();
         while (buf.readableBytes() > 0) {
