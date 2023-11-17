@@ -30,6 +30,7 @@ public class ArnaviBinaryProtocolEncoder extends BaseProtocolEncoder {
         response.writeByte(COMMAND_SIZE);
         response.writeByte(PARCEL_NUMBER);
         response.writeByte(COMMAND_CHECKSUM);
+        response.writeBytes(bytes);
         response.writeByte(END);
 
         return response;
