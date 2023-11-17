@@ -22,8 +22,8 @@ public class NavtelecomProtocolEncoder extends BaseProtocolEncoder {
         long receiver = getNavtelecomReceiver(deviceId);
 
         header.writeBytes("@NTC".getBytes(StandardCharsets.US_ASCII));
-        header.writeInt((int)sender);
-        header.writeInt((int)receiver);
+        header.writeIntLE((int)sender);
+        header.writeIntLE((int)receiver);
 
         byte[] content_bytes = content.getBytes(StandardCharsets.US_ASCII);
 
