@@ -128,6 +128,8 @@ public class ArnaviBinaryProtocolDecoder extends BaseProtocolDecoder {
 
             String imei = String.valueOf(buf.readLongLE());
             DeviceSession deviceSession = getDeviceSession(channel, remoteAddress, imei);
+            getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setArnaviParcelNumber(0);
+
 
             if (deviceSession != null) {
                 sendResponse(channel, version, 0);
