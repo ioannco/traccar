@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd"
         logicalFilePath="changelog-6.0">
 
-    <changeSet author="author" id="changelog-5.9">
+    <changeSet author="author" id="changelog-6.0">
 
         <addColumn tableName="tc_devices">
             <column name="optionalid" type="VARCHAR(32)" />
