@@ -603,6 +603,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             alternative = true;
         }
 
+        System.out.println("Call getDeviceSessionFromOptionalId");
         DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, id, imei);
 
         if (deviceSession == null) {

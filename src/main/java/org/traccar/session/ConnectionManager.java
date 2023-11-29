@@ -102,14 +102,16 @@ public class ConnectionManager implements BroadcastInterface {
 
     public DeviceSession getDeviceSessionFromOptionalId(
             Protocol protocol, Channel channel, SocketAddress remoteAddress, String optionalId, String uniqueId) throws StorageException {
-        System.out.println("getDeviceSession start");
+        System.out.println("getDeviceSessionFromOptionalId start with optionalId = " + optionalId);
+        if (uniqueId != null) {
+            System.out.println("Unique id is " + uniqueId);
+        }
 
         Endpoint endpoint = new Endpoint(channel, remoteAddress);
         Map<String, DeviceSession> endpointSessions = sessionsByEndpoint.getOrDefault(
                 endpoint, new ConcurrentHashMap<>());
 
         System.out.printf("Endpoint sessions count: %d%n", endpointSessions.size());
-
         DeviceSession anyFromEndpoints = endpointSessions.values().stream().findAny().orElse(null);
         if (anyFromEndpoints != null) {
             return anyFromEndpoints;
