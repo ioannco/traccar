@@ -551,6 +551,8 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
     protected Object decode(
             Channel channel, SocketAddress remoteAddress, Object msg) throws Exception {
 
+        System.out.println("Decoding TK103 message.");
+
         String sentence = (String) msg;
         String imei = null;
 
@@ -563,6 +565,9 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             } else if (type.equals("BP05")) {
                 channel.writeAndFlush(new NetworkMessage("(" + id + "AP05)", remoteAddress));
                 imei = sentence.substring(17, 17 + 15);
+                System.out.printf("TK103 auth message with imei %s%n", imei);
+            } else {
+                System.out.println("TK103 other message.");
             }
         }
 
@@ -599,9 +604,11 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
 
         DeviceSession deviceSession;
         if (imei != null) {
+            System.out.println("Create device session");
             deviceSession = getDeviceSession(channel, remoteAddress, imei);
             getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setTk103Id(id);
         } else {
+            System.out.println("Search for any session on channel and address");
             deviceSession = getDeviceSession(channel, remoteAddress);
         }
 

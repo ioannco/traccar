@@ -104,9 +104,13 @@ public class ConnectionManager implements BroadcastInterface {
             Protocol protocol, Channel channel, SocketAddress remoteAddress,
             String... uniqueIds) throws StorageException {
 
+        System.out.println("getDeviceSession start");
+
         Endpoint endpoint = new Endpoint(channel, remoteAddress);
         Map<String, DeviceSession> endpointSessions = sessionsByEndpoint.getOrDefault(
                 endpoint, new ConcurrentHashMap<>());
+
+        System.out.printf("Endpoint sessions count: %d%n", endpointSessions.size());
 
         uniqueIds = Arrays.stream(uniqueIds).filter(Objects::nonNull).toArray(String[]::new);
         if (uniqueIds.length > 0) {
@@ -117,6 +121,7 @@ public class ConnectionManager implements BroadcastInterface {
                 }
             }
         } else {
+            System.out.println("No deviceIds present, search for any value in endpointSessions");
             return endpointSessions.values().stream().findAny().orElse(null);
         }
 
