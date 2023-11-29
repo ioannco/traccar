@@ -556,9 +556,10 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
 
         String sentence = (String) msg;
         String imei = null;
+        String id = null;
 
         if (channel != null) {
-            String id = sentence.substring(1, 13);
+            id = sentence.substring(1, 13);
             String type = sentence.substring(13, 17);
             if (type.equals("BP00")) {
                 channel.writeAndFlush(new NetworkMessage("(" + id + "AP01HSO)", remoteAddress));
@@ -588,12 +589,15 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return decodeBms(channel, remoteAddress, sentence);
         }
 
+        System.out.println("Call getDeviceSessionFromOptionalId");
+        System.out.println(imei);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, id, imei);
+
         Parser parser = new Parser(PATTERN, sentence);
         if (!parser.matches()) {
             return null;
         }
 
-        String id = null;
         boolean alternative = false;
         if (parser.hasNext()) {
             id = parser.next();
@@ -602,10 +606,6 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             id = parser.next();
             alternative = true;
         }
-
-        System.out.println("Call getDeviceSessionFromOptionalId");
-        System.out.println(imei);
-        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, id, imei);
 
         if (deviceSession == null) {
             System.out.println("TK103 ERROR: deviceSession is null.");
