@@ -18,12 +18,9 @@ package org.traccar.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.traccar.BaseProtocolDecoder;
 import org.traccar.helper.DataConverter;
 import org.traccar.model.*;
-import org.traccar.session.ConnectionManager;
 import org.traccar.session.DeviceSession;
 import org.traccar.NetworkMessage;
 import org.traccar.Protocol;
@@ -48,8 +45,6 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
     protected void init() {
         decodeLow = getConfig().getBoolean(Keys.PROTOCOL_DECODE_LOW.withPrefix(getProtocolName()));
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionManager.class);
 
     private static final Pattern PATTERN = new PatternBuilder()
             .text("(").optional()
@@ -278,12 +273,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         }
     }
 
-    private Position decodeBattery(DeviceSession deviceSession, String sentence) {
+    private Position decodeBattery(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_BATTERY, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress, parser.next());
         if (deviceSession == null) {
             return null;
         }
@@ -311,12 +307,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeCell(DeviceSession deviceSession, String sentence) {
+    private Position decodeCell(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_CELL, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -343,12 +340,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeNetwork(DeviceSession deviceSession, String sentence) {
+    private Position decodeNetwork(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_NETWORK, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -364,12 +362,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeLbsWifi(DeviceSession deviceSession, String sentence) {
+    private Position decodeLbsWifi(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_LBSWIFI, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -407,12 +406,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeCommandResult(DeviceSession deviceSession, String sentence) {
+    private Position decodeCommandResult(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_COMMAND_RESULT, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -427,12 +427,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeVin(DeviceSession deviceSession, String sentence) {
+    private Position decodeVin(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_VIN, sentence);
         if (!parser.matches()) {
             return null;
         }
 
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -447,7 +448,8 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         return position;
     }
 
-    private Position decodeBms(DeviceSession deviceSession, String sentence) {
+    private Position decodeBms(Channel channel, SocketAddress remoteAddress, String sentence) {
+        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
         if (deviceSession == null) {
             return null;
         }
@@ -550,8 +552,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             Channel channel, SocketAddress remoteAddress, Object msg) throws Exception {
 
         String sentence = (String) msg;
-        DeviceSession deviceSession = null;
-
+        String imei = null;
 
         if (channel != null) {
             String id = sentence.substring(1, 13);
@@ -561,27 +562,24 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
                 return null;
             } else if (type.equals("BP05")) {
                 channel.writeAndFlush(new NetworkMessage("(" + id + "AP05)", remoteAddress));
-                String imei = sentence.substring(17, 17 + 15);
-                deviceSession = getDeviceSession(channel, remoteAddress, imei);
-                getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setTk103Id(id);
+                imei = sentence.substring(17, 17 + 15);
             }
         }
 
-
         if (sentence.indexOf('{') > 0 && sentence.indexOf('}') > 0) {
-            return decodeCell(deviceSession, sentence);
+            return decodeCell(channel, remoteAddress, sentence);
         } else if (sentence.contains("ZC20")) {
-            return decodeBattery(deviceSession, sentence);
+            return decodeBattery(channel, remoteAddress, sentence);
         } else if (sentence.contains("BZ00")) {
-            return decodeNetwork(deviceSession, sentence);
+            return decodeNetwork(channel, remoteAddress, sentence);
         } else if (sentence.contains("ZC03")) {
-            return decodeCommandResult(deviceSession, sentence);
+            return decodeCommandResult(channel, remoteAddress, sentence);
         } else if (sentence.contains("DW5")) {
-            return decodeLbsWifi(deviceSession, sentence);
+            return decodeLbsWifi(channel, remoteAddress, sentence);
         } else if (sentence.contains("BV00")) {
-            return decodeVin(deviceSession, sentence);
+            return decodeVin(channel, remoteAddress, sentence);
         } else if (sentence.contains("BS50") || sentence.contains("BS51")) {
-            return decodeBms(deviceSession, sentence);
+            return decodeBms(channel, remoteAddress, sentence);
         }
 
         Parser parser = new Parser(PATTERN, sentence);
@@ -589,14 +587,23 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
+        String id = null;
         boolean alternative = false;
-        parser.hasNext();
         if (parser.hasNext()) {
+            id = parser.next();
+        }
+        if (parser.hasNext()) {
+            id = parser.next();
             alternative = true;
         }
 
-        if (deviceSession == null)
+        DeviceSession deviceSession;
+        if (imei != null) {
+            deviceSession = getDeviceSession(channel, remoteAddress, imei);
+            getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setTk103Id(id);
+        } else {
             deviceSession = getDeviceSession(channel, remoteAddress);
+        }
 
         if (deviceSession == null) {
             return null;
@@ -614,8 +621,6 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             data = parser.next();
         }
         decodeType(position, type, data);
-
-        LOGGER.info((String) msg);
 
         DateBuilder dateBuilder = new DateBuilder();
         if (alternative) {
