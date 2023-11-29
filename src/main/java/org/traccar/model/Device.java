@@ -56,6 +56,16 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
         this.uniqueId = uniqueId.trim();
     }
 
+    private String optionalId;
+
+    public String getOptionalId() {
+        return optionalId;
+    }
+
+    public void setOptionalId(String id) {
+        optionalId = id;
+    }
+
     public static final String STATUS_UNKNOWN = "unknown";
     public static final String STATUS_ONLINE = "online";
     public static final String STATUS_OFFLINE = "offline";

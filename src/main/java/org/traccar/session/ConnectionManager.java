@@ -100,6 +100,72 @@ public class ConnectionManager implements BroadcastInterface {
         return sessionsByDeviceId.get(deviceId);
     }
 
+    public DeviceSession getDeviceSessionFromOptionalId(
+            Protocol protocol, Channel channel, SocketAddress remoteAddress, String optionalId, String uniqueId) throws StorageException {
+        System.out.println("getDeviceSession start");
+
+        Endpoint endpoint = new Endpoint(channel, remoteAddress);
+        Map<String, DeviceSession> endpointSessions = sessionsByEndpoint.getOrDefault(
+                endpoint, new ConcurrentHashMap<>());
+
+        System.out.printf("Endpoint sessions count: %d%n", endpointSessions.size());
+
+        DeviceSession anyFromEndpoints = endpointSessions.values().stream().findAny().orElse(null);
+        if (anyFromEndpoints != null) {
+            return anyFromEndpoints;
+        }
+
+        Device device;
+        if (uniqueId == null) {
+            System.out.println("No unique id present, search for any device with optional id.");
+            device = deviceLookupService.lookupOptional(new String[]{optionalId});
+        } else {
+            System.out.println("Unique id present, search for device.");
+            device = deviceLookupService.lookup(new String[] {uniqueId});
+            if (device != null && (device.getOptionalId() == null || device.getOptionalId().isEmpty())) {
+                System.out.println("Device found, but optional id not present. Update database.");
+                device.setOptionalId(optionalId);
+                storage.updateObject(device, new Request(
+                        new Columns.Include("optionalId"),
+                        new Condition.Equals("id", device.getId())
+                ));
+            }
+        }
+
+        if (device != null)  {
+            System.out.println("Device found.");
+
+            device.checkDisabled();
+
+            DeviceSession oldSession = sessionsByDeviceId.remove(device.getId());
+            if (oldSession != null) {
+                Endpoint oldEndpoint = new Endpoint(oldSession.getChannel(), oldSession.getRemoteAddress());
+                Map<String, DeviceSession> oldEndpointSessions = sessionsByEndpoint.get(oldEndpoint);
+                if (oldEndpointSessions != null && oldEndpointSessions.size() > 1) {
+                    oldEndpointSessions.remove(device.getUniqueId());
+                } else {
+                    sessionsByEndpoint.remove(oldEndpoint);
+                }
+            }
+
+            DeviceSession deviceSession = new DeviceSession(
+                    device.getId(), device.getUniqueId(), protocol, channel, remoteAddress);
+            endpointSessions.put(device.getUniqueId(), deviceSession);
+            sessionsByEndpoint.put(endpoint, endpointSessions);
+            sessionsByDeviceId.put(device.getId(), deviceSession);
+
+            if (oldSession == null) {
+                cacheManager.addDevice(device.getId());
+            }
+
+            return deviceSession;
+        } else {
+            LOGGER.warn("Unknown device - " + optionalId
+                    + " (" + ((InetSocketAddress) remoteAddress).getHostString() + ")");
+            return null;
+        }
+    }
+
     public DeviceSession getDeviceSession(
             Protocol protocol, Channel channel, SocketAddress remoteAddress,
             String... uniqueIds) throws StorageException {

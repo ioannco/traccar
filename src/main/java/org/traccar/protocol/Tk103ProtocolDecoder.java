@@ -172,6 +172,23 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         }
     }
 
+    private Integer decodeBattery(int value) {
+        switch (value) {
+            case 6:
+                return 100;
+            case 5:
+                return 80;
+            case 4:
+                return 50;
+            case 3:
+                return 20;
+            case 2:
+                return 10;
+            default:
+                return null;
+        }
+    }
+
     private void decodeType(Position position, String type, String data) {
         switch (type) {
             case "BQ81":
@@ -256,30 +273,13 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         }
     }
 
-    private Integer decodeBattery(int value) {
-        switch (value) {
-            case 6:
-                return 100;
-            case 5:
-                return 80;
-            case 4:
-                return 50;
-            case 3:
-                return 20;
-            case 2:
-                return 10;
-            default:
-                return null;
-        }
-    }
-
     private Position decodeBattery(Channel channel, SocketAddress remoteAddress, String sentence) {
         Parser parser = new Parser(PATTERN_BATTERY, sentence);
         if (!parser.matches()) {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress, parser.next());
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -313,7 +313,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -346,7 +346,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -368,7 +368,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -412,7 +412,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -433,7 +433,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             return null;
         }
 
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, parser.next(), null);
         if (deviceSession == null) {
             return null;
         }
@@ -449,7 +449,8 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
     }
 
     private Position decodeBms(Channel channel, SocketAddress remoteAddress, String sentence) {
-        DeviceSession deviceSession = getDeviceSession(channel, remoteAddress);
+        String id = sentence.substring(1, 13);
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, id, null);
         if (deviceSession == null) {
             return null;
         }
@@ -602,15 +603,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             alternative = true;
         }
 
-        DeviceSession deviceSession;
-        if (imei != null) {
-            System.out.println("Create device session");
-            deviceSession = getDeviceSession(channel, remoteAddress, imei);
-            getCacheManager().getObject(Device.class, deviceSession.getDeviceId()).setTk103Id(id);
-        } else {
-            System.out.println("Search for any session on channel and address");
-            deviceSession = getDeviceSession(channel, remoteAddress);
-        }
+        DeviceSession deviceSession = getDeviceSessionFromOptionalId(channel, remoteAddress, id, imei);
 
         if (deviceSession == null) {
             System.out.println("TK103 ERROR: deviceSession is null.");

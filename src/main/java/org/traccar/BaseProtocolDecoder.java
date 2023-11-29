@@ -141,6 +141,14 @@ public abstract class BaseProtocolDecoder extends ExtendedObjectDecoder {
         }
     }
 
+    public DeviceSession getDeviceSessionFromOptionalId(Channel channel, SocketAddress remoteAddress, String optionalId, String uniqueId) {
+        try {
+            return connectionManager.getDeviceSessionFromOptionalId(protocol, channel, remoteAddress, optionalId, uniqueId);
+        } catch (StorageException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void getLastLocation(Position position, Date deviceTime) {
         if (position.getDeviceId() != 0) {
             position.setOutdated(true);
