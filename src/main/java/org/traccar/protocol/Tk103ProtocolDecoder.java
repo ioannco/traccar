@@ -606,6 +606,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
         }
 
         if (deviceSession == null) {
+            System.out.println("TK103 ERROR: deviceSession is null.");
             return null;
         }
 
