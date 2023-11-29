@@ -18,9 +18,12 @@ package org.traccar.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.traccar.BaseProtocolDecoder;
 import org.traccar.helper.DataConverter;
 import org.traccar.model.*;
+import org.traccar.session.ConnectionManager;
 import org.traccar.session.DeviceSession;
 import org.traccar.NetworkMessage;
 import org.traccar.Protocol;
@@ -45,6 +48,8 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
     protected void init() {
         decodeLow = getConfig().getBoolean(Keys.PROTOCOL_DECODE_LOW.withPrefix(getProtocolName()));
     }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionManager.class);
 
     private static final Pattern PATTERN = new PatternBuilder()
             .text("(").optional()
@@ -609,6 +614,8 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             data = parser.next();
         }
         decodeType(position, type, data);
+
+        LOGGER.info((String) msg);
 
         DateBuilder dateBuilder = new DateBuilder();
         if (alternative) {
