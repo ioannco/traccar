@@ -293,10 +293,13 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
 
     private String tk103Id;
 
+    @JsonIgnore
+    @QueryIgnore
     public String getTk103Id() {
         return tk103Id;
     }
 
+    @JsonIgnore
     public void setTk103Id(String tk103Id) {
         this.tk103Id = tk103Id;
     }
