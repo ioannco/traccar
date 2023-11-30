@@ -249,15 +249,21 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
     }
 
     private long navtelecomSenderId;
-    private long navtelecomReceiverId;
-
-    private long arnaviParcelNumber;
 
     @QueryIgnore
     @JsonIgnore
     public long getNavtelecomSenderId() {
         return navtelecomSenderId;
     }
+
+    @JsonIgnore
+    public void setNavtelecomSenderId(long sender) {
+        navtelecomSenderId = sender;
+    }
+
+
+    private long navtelecomReceiverId;
+
 
     @QueryIgnore
     @JsonIgnore
@@ -266,24 +272,32 @@ public class Device extends GroupedModel implements Disableable, Schedulable {
     }
 
     @JsonIgnore
+    public void setNavtelecomReceiverId(long receiverId) {
+        navtelecomReceiverId = receiverId;
+    }
+
+    private long arnaviParcelNumber;
+
+
+    @JsonIgnore
     @QueryIgnore
     public long getArnaviParcelNumber() {
         return arnaviParcelNumber;
     }
 
-    @JsonIgnore
-    public void setNavtelecomSenderId(long sender) {
-        navtelecomSenderId = sender;
-    }
-
-    @JsonIgnore
-    public void setNavtelecomReceiverId(long receiverId) {
-        navtelecomReceiverId = receiverId;
-    }
 
     @JsonIgnore
     public void setArnaviParcelNumber(long parcel) {
         arnaviParcelNumber = parcel;
     }
 
+    private String tk103Id;
+
+    public String getTk103Id() {
+        return tk103Id;
+    }
+
+    public void setTk103Id(String tk103Id) {
+        this.tk103Id = tk103Id;
+    }
 }
