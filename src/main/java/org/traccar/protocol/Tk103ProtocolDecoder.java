@@ -571,6 +571,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
                 String imei = sentence.substring(17, 17 + 15);
                 DeviceSession session = getDeviceSession(channel, remoteAddress, imei);
                 Device device = getCacheManager().getObject(Device.class, session.getDeviceId());
+                System.out.println(imei);
                 device.setTk103Id(id);
             }
         }
