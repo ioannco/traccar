@@ -21,10 +21,13 @@ import org.traccar.StringProtocolEncoder;
 import org.traccar.config.Keys;
 import org.traccar.helper.model.AttributeUtil;
 import org.traccar.model.Command;
+import org.traccar.model.Device;
 
 public class Tk103ProtocolEncoder extends StringProtocolEncoder {
 
     private final boolean forceAlternative;
+
+    private final static String KEY_TK103ID = "TK103ID";
 
     public Tk103ProtocolEncoder(Protocol protocol) {
         super(protocol);
@@ -38,6 +41,34 @@ public class Tk103ProtocolEncoder extends StringProtocolEncoder {
 
     private String formatAlt(Command command, String format, String... keys) {
         return formatCommand(command, "[begin]sms2," + format + ",[end]", keys);
+    }
+
+    @Override
+    protected String formatCommand(Command command, String format, ValueFormatter valueFormatter, String... keys) {
+
+        Object[] values = new String[keys.length];
+        for (int i = 0; i < keys.length; i++) {
+            String value = null;
+            if (keys[i].equals(Command.KEY_UNIQUE_ID)) {
+                value = getUniqueId(command.getDeviceId());
+            } else if (keys[i].equals(KEY_TK103ID)) {
+                value = getCacheManager().getObject(Device.class, command.getDeviceId()).getTk103Id();
+            } else {
+                Object object = command.getAttributes().get(keys[i]);
+                if (valueFormatter != null) {
+                    value = valueFormatter.formatValue(keys[i], object);
+                }
+                if (value == null && object != null) {
+                    value = object.toString();
+                }
+                if (value == null) {
+                    value = "";
+                }
+            }
+            values[i] = value;
+        }
+
+        return String.format(format, values);
     }
 
     @Override
@@ -85,26 +116,26 @@ public class Tk103ProtocolEncoder extends StringProtocolEncoder {
         } else {
             switch (command.getType()) {
                 case Command.TYPE_CUSTOM:
-                    return formatCommand(command, "(%s%s)", Command.KEY_UNIQUE_ID, Command.KEY_DATA);
+                    return formatCommand(command, "(%s%s)", KEY_TK103ID, Command.KEY_DATA);
                 case Command.TYPE_GET_VERSION:
-                    return formatCommand(command, "(%sAP07)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAP07)", KEY_TK103ID);
                 case Command.TYPE_REBOOT_DEVICE:
-                    return formatCommand(command, "(%sAT00)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAT00)", KEY_TK103ID);
                 case Command.TYPE_SET_ODOMETER:
-                    return formatCommand(command, "(%sAX01)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAX01)", KEY_TK103ID);
                 case Command.TYPE_POSITION_SINGLE:
-                    return formatCommand(command, "(%sAP00)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAP00)", KEY_TK103ID);
                 case Command.TYPE_POSITION_PERIODIC:
                     String frequency = String.format("%04X", command.getInteger(Command.KEY_FREQUENCY));
-                    return formatCommand(command, "(%sAR00" + frequency + "0000)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAR00" + frequency + "0000)", KEY_TK103ID);
                 case Command.TYPE_POSITION_STOP:
-                    return formatCommand(command, "(%sAR0000000000)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAR0000000000)", KEY_TK103ID);
                 case Command.TYPE_ENGINE_STOP:
-                    return formatCommand(command, "(%sAV010)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAV010)", KEY_TK103ID);
                 case Command.TYPE_ENGINE_RESUME:
-                    return formatCommand(command, "(%sAV011)", Command.KEY_UNIQUE_ID);
+                    return formatCommand(command, "(%sAV011)", KEY_TK103ID);
                 case Command.TYPE_OUTPUT_CONTROL:
-                    return formatCommand(command, "(%sAV00%s)", Command.KEY_UNIQUE_ID, Command.KEY_DATA);
+                    return formatCommand(command, "(%sAV00%s)", KEY_TK103ID, Command.KEY_DATA);
                 default:
                     return null;
             }
