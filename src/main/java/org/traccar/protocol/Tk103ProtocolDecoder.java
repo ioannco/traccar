@@ -572,6 +572,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
                 DeviceSession session = getDeviceSession(channel, remoteAddress, imei);
                 Device device = getCacheManager().getObject(Device.class, session.getDeviceId());
                 device.setTk103Id(id);
+                return null;
             }
         }
 
