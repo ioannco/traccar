@@ -572,9 +572,11 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
                 DeviceSession session = getDeviceSession(channel, remoteAddress, imei);
                 Device device = getCacheManager().getObject(Device.class, session.getDeviceId());
                 device.setTk103Id(id);
-                return null;
             }
         }
+
+        if (!sentence.contains("BR00"))
+            return null;
 
         if (sentence.indexOf('{') > 0 && sentence.indexOf('}') > 0) {
             return decodeCell(channel, remoteAddress, sentence);
@@ -621,8 +623,7 @@ public class Tk103ProtocolDecoder extends BaseProtocolDecoder {
             data = parser.next();
         }
         if (parser.hasNext()) {
-            data = parser.next();
-        }
+            data = parser.next();        }
         decodeType(position, type, data);
 
         DateBuilder dateBuilder = new DateBuilder();
